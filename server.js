@@ -143,6 +143,21 @@ wss.on('connection', (ws) => {
                         }
                     }
                     break;
+
+                case 'surrender':
+                    const surrenderRoom = rooms.get(roomCode);
+                    if (surrenderRoom && surrenderRoom.gameState === 'playing') {
+                        surrenderRoom.gameState = 'ended';
+                        const winner = surrenderRoom.players.find(p => p.id !== playerId);
+                        surrenderRoom.players.forEach(pl => {
+                            pl.ws.send(JSON.stringify({ 
+                                type: 'gameOver', 
+                                winner: winner ? winner.id : playerId,
+                                surrendered: playerId
+                            }));
+                        });
+                    }
+                    break;
             }
         } catch (e) {
             console.error('Error:', e);
