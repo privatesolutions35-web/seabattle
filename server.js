@@ -5,6 +5,11 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    next();
+});
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
@@ -33,7 +38,7 @@ wss.on('connection', (ws) => {
                     const roomList = [];
                     rooms.forEach((room, code) => {
                         if (room.gameState === 'waiting' && room.players.length < 2) {
-                            roomList.push({ code, players: room.players.length });
+                            roomList.push({ code, players: room.players.length, bet: room.bet });
                         }
                     });
                     ws.send(JSON.stringify({ type: 'roomsList', rooms: roomList }));
@@ -46,9 +51,12 @@ wss.on('connection', (ws) => {
                 case 'create':
                     playerId = generateId();
                     roomCode = generateRoomCode();
+                    const bet = msg.bet || 1;
                     rooms.set(roomCode, {
                         players: [{ id: playerId, ws, ready: false, board: null, ships: [] }],
-                        gameState: 'waiting'
+                        gameState: 'waiting',
+                        bet: bet,
+                        prizePool: bet * 2
                     });
                     players.set(playerId, { ws, roomCode });
                     ws.send(JSON.stringify({ type: 'created', roomCode, playerId }));
@@ -57,6 +65,7 @@ wss.on('connection', (ws) => {
                 case 'join':
                     const room = rooms.get(msg.roomCode);
                     if (room && room.players.length < 2) {
+                        room.prizePool += room.bet;
                         playerId = generateId();
                         room.players.push({ id: playerId, ws, ready: false, board: null, ships: [] });
                         players.set(playerId, { ws, roomCode: msg.roomCode });
@@ -230,8 +239,104 @@ app.get('*', (req, res) => {
     res.sendFile(indexPath);
 });
 
+const users = new Map();
+
+app.use(express.json());
+
+app.post('/api/deposit/check', async (req, res) => {
+    const { address } = req.body;
+    const API_KEY = 'be731a50-abde-4c61-9766-4fc4b0ea5211';
+    
+    try {
+        const response = await fetch(`https://apilive.tronscan.org/api/transaction?address=${address}&limit=10`, {
+            headers: { 'Authorization': API_KEY }
+        });
+        const data = await response.json();
+        
+        const deposits = data.data?.filter(tx => 
+            tx.to_address === address && 
+            tx.contract_type === 'Transfer' &&
+            tx.token_info?.symbol === 'USDT'
+        ) || [];
+        
+        res.json({ success: true, deposits });
+    } catch (e) {
+        res.json({ success: false, error: e.message });
+    }
+});
+
+app.post('/api/user/register', (req, res) => {
+    const { username, password } = req.body;
+    if (users.has(username)) {
+        res.json({ success: false, error: 'Username exists' });
+        return;
+    }
+    users.set(username, { password, balance: 0 });
+    res.json({ success: true });
+});
+
+app.post('/api/user/login', (req, res) => {
+    const { username, password } = req.body;
+    const user = users.get(username);
+    if (user && user.password === password) {
+        res.json({ success: true, balance: user.balance });
+    } else {
+        res.json({ success: false, error: 'Invalid credentials' });
+    }
+});
+
+app.post('/api/user/balance', (req, res) => {
+    const { username } = req.body;
+    const user = users.get(username);
+    res.json({ success: true, balance: user?.balance || 0 });
+});
+
+app.post('/api/user/deposit', (req, res) => {
+    const { username, amount } = req.body;
+    const user = users.get(username);
+    if (user) {
+        user.balance += amount;
+        res.json({ success: true, balance: user.balance });
+    } else {
+        res.json({ success: false });
+    }
+});
+
+const withdrawals = [];
+
+app.post('/api/withdraw/request', (req, res) => {
+    const { username, address, amount } = req.body;
+    const user = users.get(username);
+    if (!user) {
+        res.json({ success: false, error: 'User not found' });
+        return;
+    }
+    const fee = amount * 0.05;
+    const total = amount + fee;
+    if (user.balance < total) {
+        res.json({ success: false, error: 'Insufficient balance' });
+        return;
+    }
+    user.balance -= total;
+    withdrawals.push({ username, address, amount, fee, date: Date.now(), status: 'pending' });
+    res.json({ success: true, balance: user.balance });
+});
+
+app.get('/api/withdraw/list', (req, res) => {
+    res.json({ success: true, withdrawals });
+});
+
+app.post('/api/withdraw/approve', (req, res) => {
+    const { index } = req.body;
+    if (withdrawals[index]) {
+        withdrawals[index].status = 'completed';
+        res.json({ success: true });
+    } else {
+        res.json({ success: false });
+    }
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
-    console.log(`Serving static from: ${path.resolve(__dirname, 'public')}`);
 });
