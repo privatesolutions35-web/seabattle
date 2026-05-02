@@ -151,6 +151,9 @@
                 <div class="board-title">Вражеский флот</div>
                 <div class="board" id="enemyBoard"></div>
             </div>
+            <div class="controls" id="surrenderArea" style="display:none">
+                <button class="btn" onclick="surrender()">Сдаться</button>
+            </div>
         </div>
 
         <div class="lobby" id="lobby">
@@ -303,6 +306,9 @@
                     document.getElementById('setup').classList.remove('active');
                     document.getElementById('gameArea').classList.add('active');
                     document.getElementById('lobby').classList.remove('active');
+                    if (gameMode === 'multi') {
+                        document.getElementById('surrenderArea').style.display = 'flex';
+                    }
                     document.getElementById('playerLabel').innerHTML = playerNum === 1 ? '(Игрок 1)' : '(Игрок 2)';
                     enemyBoard = initBoard();
                     renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
@@ -311,13 +317,14 @@
                     updateTurnStatus();
                     break;
                 case 'shotResult':
+                    console.log('shotResult:', msg);
                     if (msg.playerId === playerId) {
                         const cell = document.querySelector(`#enemyBoard .cell[data-row="${msg.row}"][data-col="${msg.col}"]`);
                         if (cell) cell.classList.add(msg.result === 'hit' || msg.result === 'sunk' ? 'hit' : 'miss');
                         enemyBoard[msg.row][msg.col] = msg.result === 'hit' || msg.result === 'sunk' ? 2 : 1;
                         setTimeout(() => playSound(msg.result === 'hit' || msg.result === 'sunk' ? hitSound : missSound), 200);
-                        if (msg.result === 'hit' || msg.result === 'sunk') {
-                            startTurnTimer();
+                        if (msg.result === 'miss') {
+                            stopTurnTimer();
                         }
                     } else {
                         const cell = document.querySelector(`#playerBoardGame .cell[data-row="${msg.row}"][data-col="${msg.col}"]`);
@@ -468,7 +475,7 @@
         }
 
         function startTurnTimer() {
-            stopTurnTimer();
+            if (turnTimer) return;
             turnTimeLeft = 10;
             const timerEl = document.getElementById('timer');
             const timerValue = document.getElementById('timerValue');
@@ -501,12 +508,22 @@
         }
 
         function makeRandomShot() {
+            console.log('makeRandomShot called, myTurn:', myTurn, 'enemyBoard:', enemyBoard);
             let row, col;
             do {
                 row = Math.floor(Math.random() * BOARD_SIZE);
                 col = Math.floor(Math.random() * BOARD_SIZE);
             } while (enemyBoard[row][col] === 1 || enemyBoard[row][col] === 2);
+            console.log('Random shot:', row, col);
             multiShoot(row, col);
+        }
+
+        function surrender() {
+            if (confirm('Вы уверены, что хотите сдаться?')) {
+                ws.send(JSON.stringify({ type: 'surrender' }));
+                showGameOverPopup(false);
+                bgMusic.pause();
+            }
         }
 
         function resetTurnTimer() {
@@ -676,8 +693,9 @@
         }
 
         function multiShoot(row, col) {
-            if (!myTurn) return;
-            if (enemyBoard[row][col] === 1 || enemyBoard[row][col] === 2) return;
+            console.log('multiShoot:', row, col, 'myTurn:', myTurn, 'enemyBoard:', enemyBoard[row][col]);
+            if (!myTurn) { console.log('Not my turn'); return; }
+            if (enemyBoard[row][col] === 1 || enemyBoard[row][col] === 2) { console.log('Already shot here'); return; }
             playSound(shootSound);
             ws.send(JSON.stringify({ type: 'shoot', row, col }));
         }
