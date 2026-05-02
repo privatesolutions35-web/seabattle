@@ -276,7 +276,7 @@
                     if (showShips && ship) cell.classList.add('ship');
                     if (board[i][j] === 1) cell.classList.add('miss');
                     if (board[i][j] === 2) cell.classList.add('hit');
-                    if (board[i][j] === 3) cell.classList.add('ship-hit');
+                    if (board[i][j] === 3 && showShips) cell.classList.add('ship-hit');
                     if (elementId === 'enemyBoard') {
                         if (gameMode === 'multi' && myTurn) {
                             cell.onclick = () => multiShoot(i, j);
