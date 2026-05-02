@@ -162,6 +162,70 @@
         .timer { text-align: center; font-size: 1.3em; color: #ff6b6b; margin: 10px 0; padding: 10px; background: rgba(255, 107, 107, 0.1); border-radius: 10px; }
         .timer.warning { color: #ff0000; animation: pulse 1s infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        
+        @media (max-width: 768px) {
+            * { -webkit-tap-highlight-color: transparent; }
+            body { padding: 10px; }
+            h1 { font-size: 1.8em; margin-bottom: 15px; }
+            .mode-select { flex-direction: column; gap: 10px; align-items: center; }
+            .mode-btn { padding: 12px 25px; font-size: 1em; width: 80%; max-width: 200px; }
+            .auth-panel { position: static; margin-bottom: 15px; }
+            #authPanel { flex-direction: column; gap: 8px; }
+            #authPanel input { width: 100%; font-size: 14px; padding: 8px; }
+            #authPanel .btn { width: 100%; font-size: 0.9em; padding: 8px; }
+            #userPanel { flex-direction: column; gap: 5px; }
+            #userPanel span { font-size: 0.9em; }
+            .board {
+                grid-template-columns: repeat(10, 28px);
+                grid-template-rows: repeat(10, 28px);
+                gap: 1px;
+                padding: 3px;
+            }
+            .cell { width: 28px; height: 28px; font-size: 14px; }
+            .board-title { font-size: 1em; }
+            .setup-area { flex-direction: column; align-items: center; gap: 15px; }
+            .setup-controls { width: 100%; }
+            .controls { flex-direction: column; gap: 8px; }
+            .controls .btn, .ship-btn { width: 100%; max-width: 200px; font-size: 0.85em; padding: 10px; }
+            .ship-btn { display: inline-block !important; margin: 3px; }
+            .timer { font-size: 1em; padding: 8px; }
+            .game-area { gap: 15px; flex-direction: column; align-items: center; }
+            .game-area.active { flex-direction: column; }
+            .board-container { width: 100%; max-width: 320px; }
+            .lobby { padding: 15px; }
+            .bet-selector { margin: 10px 0; }
+            .bet-selector select { width: 100%; font-size: 1em; padding: 8px; }
+            .room-list { max-width: 100%; }
+            .room-item { flex-direction: column; gap: 8px; text-align: center; }
+            .room-item button { width: 100%; }
+            .status { font-size: 1em; padding: 10px; }
+            .popup-content { padding: 20px; margin: 10px; }
+            .popup-content h2 { font-size: 1.8em; }
+            .popup-content p { font-size: 1em; }
+            .deposit-content { padding: 20px; margin: 10px; max-width: 90%; }
+            .deposit-address { font-size: 0.8em; padding: 10px; }
+            .admin-panel { padding: 10px; }
+            .admin-content { padding: 15px; margin: 10px; }
+            .admin-content h2 { font-size: 1.5em; }
+            .stat-box { padding: 10px; margin: 5px; min-width: 80px; }
+            .stat-box .num { font-size: 1.5em; }
+            .withdrawal-item { flex-direction: column; gap: 10px; }
+            .sound-btn { width: 35px; height: 35px; font-size: 1em; margin-left: 10px; }
+            #onlineCount { font-size: 0.4em !important; display: block; margin-top: 5px; }
+            h1 { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+            #gameModeSelect { flex-wrap: wrap; }
+            #btnAdmin { display: none; }
+        }
+        
+        @media (max-width: 480px) {
+            .board { grid-template-columns: repeat(10, 24px); grid-template-rows: repeat(10, 24px); }
+            .cell { width: 24px; height: 24px; font-size: 12px; }
+            .board-container { max-width: 270px; }
+            h1 { font-size: 1.5em; }
+            .mode-btn { padding: 10px 20px; font-size: 0.9em; }
+            .popup-content h2 { font-size: 1.5em; }
+            .btn { padding: 10px 20px; font-size: 0.9em; }
+        }
     </style>
 </head>
 <body>
