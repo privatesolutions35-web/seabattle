@@ -502,8 +502,9 @@
             if (enemyBoard[row][col] === 1 || enemyBoard[row][col] === 2) return;
             if (enemyBoard[row][col] === 3) {
                 enemyBoard[row][col] = 2;
+                const hits = getShipCount(enemyBoard, enemyShips);
                 document.getElementById('status').textContent = 'Попал! Стреляйте снова';
-                if (checkWin(enemyBoard, enemyShips)) {
+                if (hits === 20) {
                     document.getElementById('status').innerHTML = '<span class="winner">ПОБЕДА! 🎉</span>';
                     document.getElementById('restartBtn').style.display = 'block';
                 }
@@ -521,8 +522,9 @@
             while (playerBoard[row][col] === 1 || playerBoard[row][col] === 2);
             if (playerBoard[row][col] === 3) {
                 playerBoard[row][col] = 2;
+                const hits = getShipCount(playerBoard, placedShips);
                 document.getElementById('status').textContent = 'Противник попал! Его ход снова';
-                if (checkWin(playerBoard, placedShips)) {
+                if (hits === 20) {
                     document.getElementById('status').innerHTML = '<span class="winner">ПОРАЖЕНИЕ 😢</span>';
                     document.getElementById('restartBtn').style.display = 'block';
                 }
@@ -534,14 +536,26 @@
         }
 
         function checkWin(board, ships) {
-            return ships.every(ship => {
+            for (const ship of ships) {
                 for (let i = 0; i < ship.size; i++) {
                     const r = ship.horizontal ? ship.row : ship.row + i;
                     const c = ship.horizontal ? ship.col + i : ship.col;
                     if (board[r][c] !== 2) return false;
                 }
-                return true;
-            });
+            }
+            return true;
+        }
+
+        function getShipCount(board, ships) {
+            let hitCount = 0;
+            for (const ship of ships) {
+                for (let i = 0; i < ship.size; i++) {
+                    const r = ship.horizontal ? ship.row : ship.row + i;
+                    const c = ship.horizontal ? ship.col + i : ship.col;
+                    if (board[r][c] === 2) hitCount++;
+                }
+            }
+            return hitCount;
         }
 
         function restartGame() {
