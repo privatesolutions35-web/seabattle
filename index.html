@@ -165,14 +165,15 @@
             ws = new WebSocket(`${protocol}//${window.location.host}`);
             ws.onopen = () => {
                 ws.send(JSON.stringify({ type: 'getOnline' }));
+                document.getElementById('status').textContent = 'Подключено. Выберите режим игры';
                 if (callback) callback();
             };
             ws.onmessage = (e) => {
                 const msg = JSON.parse(e.data);
                 handleWSMessage(msg);
             };
-            ws.onerror = () => {
-                document.getElementById('status').textContent = 'Ошибка подключения к серверу';
+            ws.onerror = (e) => {
+                console.log('WebSocket error:', e);
             };
         }
 
