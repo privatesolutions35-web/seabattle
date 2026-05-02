@@ -84,9 +84,11 @@ wss.on('connection', (ws) => {
                                 r.gameState = 'playing';
                                 r.currentPlayer = r.players[0].id;
                                 r.players.forEach(pl => {
+                                    const opponent = r.players.find(p => p.id !== pl.id);
                                     pl.ws.send(JSON.stringify({ 
                                         type: 'start', 
-                                        currentPlayer: r.currentPlayer 
+                                        currentPlayer: r.currentPlayer,
+                                        opponentShips: opponent ? opponent.ships : []
                                     }));
                                 });
                             } else {
