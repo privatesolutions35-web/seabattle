@@ -201,12 +201,22 @@
         
         bgMusic.loop = true;
         bgMusic.volume = 0.5;
+        bgMusic.preload = 'auto';
+        
+        winSound.preload = 'auto';
+        loseSound.preload = 'auto';
+        shootSound.preload = 'auto';
+        hitSound.preload = 'auto';
+        missSound.preload = 'auto';
         
         function playSound(sound) {
             if (soundState >= 2) return;
             if (sound) {
                 sound.currentTime = 0;
-                sound.play().catch(() => {});
+                const playPromise = sound.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(e => console.log('Sound error:', e.message));
+                }
             }
         }
         
