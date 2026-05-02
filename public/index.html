@@ -79,6 +79,68 @@
         .sound-btn:hover { background: rgba(0, 212, 255, 0.3); }
         .sound-btn.music-off { border-color: #ffaa00; }
         .sound-btn.all-off { border-color: #ff4444; }
+        .auth-panel {
+            position: absolute; top: 20px; right: 20px;
+            display: flex; flex-direction: column; gap: 10px;
+            z-index: 100;
+        }
+        .auth-panel input {
+            padding: 8px 12px; border: 2px solid #00d4ff;
+            background: rgba(0, 50, 100, 0.5); color: #fff; border-radius: 5px;
+        }
+        .auth-panel .btn { padding: 8px 15px; font-size: 0.9em; }
+        #userPanel { display: flex; gap: 10px; align-items: center; }
+        #userBalance { color: #00ff88; font-weight: bold; }
+        .bet-selector { margin: 15px 0; }
+        .bet-selector select {
+            padding: 10px 15px; font-size: 1.1em; border: 2px solid #00d4ff;
+            background: rgba(0, 50, 100, 0.8); color: #fff; border-radius: 8px;
+        }
+        .deposit-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .deposit-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 30px;
+            border-radius: 20px; border: 2px solid #00d4ff; text-align: center;
+            max-width: 500px;
+        }
+        .deposit-address {
+            background: rgba(0, 0, 0, 0.5); padding: 15px; border-radius: 10px;
+            word-break: break-all; font-family: monospace; margin: 15px 0;
+            border: 1px solid #00d4ff;
+        }
+        .deposit-note { color: #ff6b6b; font-size: 0.9em; margin: 10px 0; }
+        .admin-panel {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.95); z-index: 2000; overflow-y: auto;
+        }
+        .admin-content {
+            background: linear-gradient(135deg, #1a1a2e, #16213e); padding: 30px;
+            border-radius: 20px; border: 2px solid #00d4ff; max-width: 800px; margin: 50px auto;
+        }
+        .admin-content h2 { color: #00d4ff; margin-bottom: 20px; }
+        .admin-section { margin: 20px 0; padding: 15px; background: rgba(0, 0, 0, 0.3); border-radius: 10px; }
+        .admin-section h3 { color: #00ff88; margin-bottom: 10px; }
+        .withdrawal-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px; margin: 10px 0; background: rgba(0, 50, 100, 0.5); border-radius: 8px;
+        }
+        .withdrawal-info { flex: 1; }
+        .withdrawal-info span { display: block; margin: 3px 0; }
+        .user-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px; margin: 5px 0; background: rgba(0, 50, 100, 0.3); border-radius: 8px;
+        }
+        .stat-box {
+            display: inline-block; padding: 15px 25px; margin: 10px;
+            background: rgba(0, 212, 255, 0.2); border-radius: 10px; text-align: center;
+        }
+        .stat-box .num { font-size: 2em; color: #00ff88; }
+        .stat-box .label { font-size: 0.9em; color: #aaa; }
+        .admin-close {
+            position: absolute; top: 20px; right: 30px; font-size: 2em; cursor: pointer; color: #fff;
+        }
         .popup {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.8); z-index: 1000; justify-content: center; align-items: center;
@@ -105,9 +167,33 @@
 <body>
     <div class="container">
         <h1>🚢 Sea Battle <span id="onlineCount" style="font-size: 0.5em; color: #00ff88;">Online: 0</span> <button class="sound-btn" id="soundToggle" onclick="toggleSound()">🔊</button></h1>
-        <div class="mode-select">
+        <div class="mode-select" id="gameModeSelect">
             <button class="mode-btn" id="btnBot" onclick="selectMode('bot')">vs Bot</button>
             <button class="mode-btn" id="btnMulti" onclick="selectMode('multi')">Multiplayer</button>
+            <button class="mode-btn" id="btnAdmin" onclick="showAdminPanel()">Admin</button>
+        </div>
+        
+        <div id="authPanel" class="auth-panel">
+            <div id="loginForm">
+                <input type="text" id="username" placeholder="Username">
+                <input type="password" id="password" placeholder="Password">
+                <button class="btn" onclick="login()">Login</button>
+                <button class="btn" onclick="showRegister()">Register</button>
+            </div>
+            <div id="registerForm" style="display:none">
+                <input type="text" id="regUsername" placeholder="Username">
+                <input type="password" id="regPassword" placeholder="Password">
+                <input type="password" id="regPassword2" placeholder="Confirm password">
+                <button class="btn" onclick="register()">Register</button>
+                <button class="btn" onclick="showLogin()">Back</button>
+            </div>
+            <div id="userPanel" style="display:none">
+                <span id="userNameDisplay"></span>
+                <span id="userBalance">Balance: 0 USDT</span>
+                <button class="btn" onclick="showDeposit()">Deposit</button>
+                <button class="btn" onclick="showWithdraw()">Withdraw</button>
+                <button class="btn" onclick="logout()">Logout</button>
+            </div>
         </div>
         <div id="status" class="status">Select game mode</div>
         <div id="timer" class="timer" style="display:none">Time left: <span id="timerValue">45</span>s</div>
@@ -157,7 +243,19 @@
         </div>
 
         <div class="lobby" id="lobby">
-            <h3>Multiplayer</h3>
+            <h3>Multiplayer (Crypto only)</h3>
+            <div class="bet-selector">
+                <label>Select bet: </label>
+                <select id="betSelect">
+                    <option value="1">1 USDT</option>
+                    <option value="2">2 USDT</option>
+                    <option value="5">5 USDT</option>
+                    <option value="10">10 USDT</option>
+                    <option value="100">100 USDT</option>
+                    <option value="500">500 USDT</option>
+                    <option value="1000">1000 USDT</option>
+                </select>
+            </div>
             <div class="controls">
                 <button class="btn" onclick="createRoom()">Create Room</button>
                 <button class="btn" onclick="refreshRooms()">Refresh</button>
@@ -170,6 +268,74 @@
 
         <div class="controls">
             <button class="btn" id="restartBtn" onclick="restartGame()" style="display:none">New Game</button>
+        </div>
+        
+        <div id="depositModal" class="deposit-modal">
+            <div class="deposit-content">
+                <h3>Deposit USDT (TRC20)</h3>
+                <p>Minimum deposit: 5 USDT</p>
+                <p class="deposit-note">Commission paid by player</p>
+                <div class="deposit-address" id="depositAddress"></div>
+                <p>Send USDT to this address</p>
+                <button class="btn" onclick="checkDeposit()">Check Payment</button>
+                <div id="depositStatus" style="margin: 10px 0; color: #00ff88;"></div>
+                <button class="btn" onclick="closeDeposit()">Close</button>
+            </div>
+        </div>
+        
+        <div id="lowBalanceModal" class="deposit-modal">
+            <div class="deposit-content">
+                <h3>Insufficient Balance</h3>
+                <p id="lowBalanceMessage">Your balance is too low</p>
+                <button class="btn" onclick="showDeposit()">Deposit</button>
+                <button class="btn" onclick="closeLowBalance()">Cancel</button>
+            </div>
+        </div>
+        
+        <div id="withdrawModal" class="deposit-modal">
+            <div class="deposit-content">
+                <h3>Withdraw USDT (TRC20)</h3>
+                <p>Minimum withdrawal: 5 USDT</p>
+                <p class="deposit-note">Commission (5%) paid by player</p>
+                <p>Your balance: <span id="withdrawBalance">0</span> USDT</p>
+                <input type="text" id="withdrawAddress" placeholder="Your TRC20 wallet address" style="width: 100%; padding: 10px; margin: 10px 0;">
+                <input type="number" id="withdrawAmount" placeholder="Amount (USDT)" style="width: 100%; padding: 10px; margin: 10px 0;">
+                <p id="withdrawInfo" style="color: #ff6b6b; font-size: 0.9em;"></p>
+                <button class="btn" onclick="requestWithdraw()">Request Withdrawal</button>
+                <button class="btn" onclick="closeWithdraw()">Close</button>
+            </div>
+        </div>
+        
+        <div id="withdrawSuccessModal" class="deposit-modal">
+            <div class="deposit-content">
+                <h3>Withdrawal Requested!</h3>
+                <p id="withdrawSuccessAmount"></p>
+                <p>Your request will be processed within 24 hours.</p>
+                <button class="btn" onclick="closeWithdrawSuccess()">OK</button>
+            </div>
+        </div>
+        
+        <div id="adminPanel" class="admin-panel">
+            <span class="admin-close" onclick="closeAdminPanel()">&times;</span>
+            <div class="admin-content">
+                <h2>⚙️ Admin Panel</h2>
+                <div class="admin-section">
+                    <h3>📊 Statistics</h3>
+                    <div id="adminStats">
+                        <div class="stat-box"><div class="num" id="statUsers">0</div><div class="label">Users</div></div>
+                        <div class="stat-box"><div class="num" id="statBalance">0</div><div class="label">Total Balance (USDT)</div></div>
+                        <div class="stat-box"><div class="num" id="statWithdrawals">0</div><div class="label">Pending Withdrawals</div></div>
+                    </div>
+                </div>
+                <div class="admin-section">
+                    <h3>👥 Users</h3>
+                    <div id="userList"></div>
+                </div>
+                <div class="admin-section">
+                    <h3>💸 Withdrawal Requests</h3>
+                    <div id="withdrawalList"></div>
+                </div>
+            </div>
         </div>
         
         <div id="gameOverPopup" class="popup">
@@ -198,6 +364,325 @@
         let opponentShips = [];
         
         let soundState = 0; // 0 = all on, 1 = music off, 2 = all off
+        
+        let currentBet = 1;
+        let currentUser = null;
+        let userBalance = 0;
+        const DEPOSIT_ADDRESS = 'TLqWmfNh1GQV3cYpWSCpvh41nYxpEV4EBC';
+        const MIN_DEPOSIT = 5;
+        const MIN_WITHDRAW = 5;
+        const WITHDRAW_FEE = 0.05;
+        const HOUSE_FEE = 0.10;
+        
+        function checkAuth() {
+            const saved = localStorage.getItem('seabattle_user');
+            if (saved) {
+                currentUser = JSON.parse(saved);
+                userBalance = currentUser.balance || 0;
+                showUserPanel();
+            }
+        }
+        
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+        }
+        
+        function showLogin() {
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+        }
+        
+        function register() {
+            const username = document.getElementById('regUsername').value;
+            const password = document.getElementById('regPassword').value;
+            const password2 = document.getElementById('regPassword2').value;
+            
+            if (!username || !password) { alert('Fill all fields'); return; }
+            if (password !== password2) { alert('Passwords do not match'); return; }
+            if (password.length < 6) { alert('Password must be 6+ characters'); return; }
+            
+            const users = JSON.parse(localStorage.getItem('seabattle_users') || '[]');
+            if (users.find(u => u.username === username)) { alert('Username already exists'); return; }
+            
+            const newUser = { username, password, balance: 0, created: Date.now() };
+            users.push(newUser);
+            localStorage.setItem('seabattle_users', JSON.stringify(users));
+            
+            currentUser = newUser;
+            userBalance = 0;
+            localStorage.setItem('seabattle_user', JSON.stringify(currentUser));
+            showUserPanel();
+            alert('Registration successful! Deposit USDT to play.');
+        }
+        
+        function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            const users = JSON.parse(localStorage.getItem('seabattle_users') || '[]');
+            const user = users.find(u => u.username === username && u.password === password);
+            
+            if (user) {
+                currentUser = user;
+                userBalance = user.balance || 0;
+                localStorage.setItem('seabattle_user', JSON.stringify(currentUser));
+                showUserPanel();
+            } else {
+                alert('Invalid username or password');
+            }
+        }
+        
+        function logout() {
+            localStorage.removeItem('seabattle_user');
+            currentUser = null;
+            userBalance = 0;
+            document.getElementById('userPanel').style.display = 'none';
+            document.getElementById('loginForm').style.display = 'block';
+        }
+        
+        function showUserPanel() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('userPanel').style.display = 'flex';
+            document.getElementById('userNameDisplay').textContent = currentUser.username + ' ';
+            document.getElementById('userBalance').textContent = 'Balance: ' + userBalance + ' USDT';
+        }
+        
+        function showDeposit() {
+            document.getElementById('depositModal').style.display = 'flex';
+            document.getElementById('depositAddress').textContent = DEPOSIT_ADDRESS;
+        }
+        
+        function closeDeposit() {
+            document.getElementById('depositModal').style.display = 'none';
+        }
+        
+        function closeLowBalance() {
+            document.getElementById('lowBalanceModal').style.display = 'none';
+        }
+        
+        function checkDeposit() {
+            if (!currentUser) return;
+            const statusEl = document.getElementById('depositStatus');
+            statusEl.textContent = 'Checking...';
+            statusEl.style.color = '#00d4ff';
+            
+            fetch('/api/deposit/check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address: DEPOSIT_ADDRESS })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success && data.deposits && data.deposits.length > 0) {
+                    const deposit = data.deposits[0];
+                    const amount = parseFloat(deposit.token_info?.amount || deposit.amount) / 1000000;
+                    
+                    if (amount >= MIN_DEPOSIT) {
+                        addWinnings(amount);
+                        statusEl.textContent = `Deposit found: ${amount} USDT! Balance updated.`;
+                        statusEl.style.color = '#00ff88';
+                    } else {
+                        statusEl.textContent = `Amount too low: ${amount} USDT (min: ${MIN_DEPOSIT})`;
+                        statusEl.style.color = '#ff6b6b';
+                    }
+                } else {
+                    statusEl.textContent = 'No deposit found yet. Send USDT and wait for confirmation.';
+                    statusEl.style.color = '#ffaa00';
+                }
+            })
+            .catch(e => {
+                statusEl.textContent = 'Error checking deposit: ' + e.message;
+                statusEl.style.color = '#ff4444';
+            });
+        }
+        
+        function checkBet(bet) {
+            const fee = bet * HOUSE_FEE;
+            const total = bet + fee;
+            if (userBalance < total) {
+                document.getElementById('lowBalanceMessage').textContent = 
+                    'Need ' + total + ' USDT (bet + ' + (fee*100) + '% fee). Your balance: ' + userBalance;
+                document.getElementById('lowBalanceModal').style.display = 'flex';
+                return false;
+            }
+            return true;
+        }
+        
+        function deductBet(bet) {
+            const fee = bet * HOUSE_FEE;
+            userBalance -= (bet + fee);
+            currentUser.balance = userBalance;
+            localStorage.setItem('seabattle_user', JSON.stringify(currentUser));
+            
+            const users = JSON.parse(localStorage.getItem('seabattle_users') || '[]');
+            const idx = users.findIndex(u => u.username === currentUser.username);
+            if (idx >= 0) {
+                users[idx].balance = userBalance;
+                localStorage.setItem('seabattle_users', JSON.stringify(users));
+            }
+            document.getElementById('userBalance').textContent = 'Balance: ' + userBalance + ' USDT';
+        }
+        
+        function addWinnings(amount) {
+            userBalance += amount;
+            currentUser.balance = userBalance;
+            localStorage.setItem('seabattle_user', JSON.stringify(currentUser));
+            
+            const users = JSON.parse(localStorage.getItem('seabattle_users') || '[]');
+            const idx = users.findIndex(u => u.username === currentUser.username);
+            if (idx >= 0) {
+                users[idx].balance = userBalance;
+                localStorage.setItem('seabattle_users', JSON.stringify(users));
+            }
+            document.getElementById('userBalance').textContent = 'Balance: ' + userBalance + ' USDT';
+        }
+        
+        function showWithdraw() {
+            document.getElementById('withdrawBalance').textContent = userBalance;
+            document.getElementById('withdrawAddress').value = '';
+            document.getElementById('withdrawAmount').value = '';
+            document.getElementById('withdrawInfo').textContent = '';
+            document.getElementById('withdrawModal').style.display = 'flex';
+        }
+        
+        function closeWithdraw() {
+            document.getElementById('withdrawModal').style.display = 'none';
+        }
+        
+        function closeWithdrawSuccess() {
+            document.getElementById('withdrawSuccessModal').style.display = 'none';
+        }
+        
+        function requestWithdraw() {
+            const address = document.getElementById('withdrawAddress').value.trim();
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            
+            if (!address || address.length < 20) {
+                document.getElementById('withdrawInfo').textContent = 'Invalid wallet address';
+                return;
+            }
+            
+            if (isNaN(amount) || amount < MIN_WITHDRAW) {
+                document.getElementById('withdrawInfo').textContent = 'Minimum withdrawal: ' + MIN_WITHDRAW + ' USDT';
+                return;
+            }
+            
+            const fee = amount * WITHDRAW_FEE;
+            const total = amount + fee;
+            
+            if (total > userBalance) {
+                document.getElementById('withdrawInfo').textContent = 'Insufficient balance (need ' + total + ' incl. ' + (fee*100) + '% fee)';
+                return;
+            }
+            
+            userBalance -= total;
+            currentUser.balance = userBalance;
+            localStorage.setItem('seabattle_user', JSON.stringify(currentUser));
+            
+            const users = JSON.parse(localStorage.getItem('seabattle_users') || '[]');
+            const idx = users.findIndex(u => u.username === currentUser.username);
+            if (idx >= 0) {
+                users[idx].balance = userBalance;
+                localStorage.setItem('seabattle_users', JSON.stringify(users));
+            }
+            document.getElementById('userBalance').textContent = 'Balance: ' + userBalance + ' USDT';
+            
+            const withdrawals = JSON.parse(localStorage.getItem('seabattle_withdrawals') || '[]');
+            withdrawals.push({
+                username: currentUser.username,
+                address: address,
+                amount: amount,
+                fee: fee,
+                date: Date.now(),
+                status: 'pending'
+            });
+            localStorage.setItem('seabattle_withdrawals', JSON.stringify(withdrawals));
+            
+            document.getElementById('withdrawSuccessAmount').textContent = 
+                'Amount: ' + amount + ' USDT (fee: ' + fee.toFixed(2) + ' USDT)';
+            document.getElementById('withdrawModal').style.display = 'none';
+            document.getElementById('withdrawSuccessModal').style.display = 'flex';
+        }
+        
+        function showAdminPanel() {
+            const adminPassword = prompt('Enter admin password:');
+            if (adminPassword !== 'Vjhcrjq34$43') {
+                alert('Invalid password');
+                return;
+            }
+            const users = JSON.parse(localStorage.getItem('seabattle_users') || '[]');
+            const withdrawals = JSON.parse(localStorage.getItem('seabattle_withdrawals') || '[]');
+            const pendingWithdrawals = withdrawals.filter(w => w.status === 'pending');
+            
+            const totalBalance = users.reduce((sum, u) => sum + (u.balance || 0), 0);
+            
+            document.getElementById('statUsers').textContent = users.length;
+            document.getElementById('statBalance').textContent = totalBalance.toFixed(2);
+            document.getElementById('statWithdrawals').textContent = pendingWithdrawals.length;
+            
+            document.getElementById('userList').innerHTML = users.map(u => `
+                <div class="user-item">
+                    <span>${u.username}</span>
+                    <span style="color: #00ff88">${(u.balance || 0).toFixed(2)} USDT</span>
+                </div>
+            `).join('') || '<p>No users</p>';
+            
+            document.getElementById('withdrawalList').innerHTML = pendingWithdrawals.map((w, i) => `
+                <div class="withdrawal-item">
+                    <div class="withdrawal-info">
+                        <span><strong>${w.username}</strong></span>
+                        <span>Amount: ${w.amount} USDT (fee: ${w.fee?.toFixed(2) || 0})</span>
+                        <span style="font-size: 0.8em; color: #aaa;">${new Date(w.date).toLocaleString()}</span>
+                        <span style="font-size: 0.8em; word-break: break-all;">${w.address}</span>
+                    </div>
+                    <div>
+                        <button class="btn" onclick="approveWithdraw(${i})">Approve</button>
+                        <button class="btn" style="background: #ff4444" onclick="rejectWithdraw(${i})">Reject</button>
+                    </div>
+                </div>
+            `).join('') || '<p>No pending withdrawals</p>';
+            
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+        
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').style.display = 'none';
+        }
+        
+        function approveWithdraw(index) {
+            const withdrawals = JSON.parse(localStorage.getItem('seabattle_withdrawals') || '[]');
+            const pending = withdrawals.filter(w => w.status === 'pending');
+            if (pending[index]) {
+                pending[index].status = 'approved';
+                pending[index].approved = Date.now();
+                localStorage.setItem('seabattle_withdrawals', JSON.stringify(withdrawals));
+                alert('Withdrawal marked as approved! Send ' + pending[index].amount + ' USDT to ' + pending[index].address);
+                showAdminPanel();
+            }
+        }
+        
+        function rejectWithdraw(index) {
+            const withdrawals = JSON.parse(localStorage.getItem('seabattle_withdrawals') || '[]');
+            const pending = withdrawals.filter(w => w.status === 'pending');
+            if (pending[index]) {
+                const w = pending[index];
+                const refund = w.amount;
+                const users = JSON.parse(localStorage.getItem('seabattle_users') || '[]');
+                const userIdx = users.findIndex(u => u.username === w.username);
+                if (userIdx >= 0) {
+                    users[userIdx].balance += refund;
+                    localStorage.setItem('seabattle_users', JSON.stringify(users));
+                }
+                w.status = 'rejected';
+                localStorage.setItem('seabattle_withdrawals', JSON.stringify(withdrawals));
+                alert('Withdrawal rejected. Balance refunded.');
+                showAdminPanel();
+            }
+        }
+        
+        checkAuth();
         let bgMusic = new Audio('/audio/Crescent-Moon(chosic.com).mp3');
         let shootSound = new Audio('/audio/shooting-an-optical-sight-on-a-rifle.mp3');
         let missSound = new Audio('/audio/ebf3f2b0fc87877.mp3');
@@ -392,8 +877,8 @@
             }
             list.innerHTML = rooms.map(r => `
                 <div class="room-item">
-                    <span>Комната: ${r.code} (${r.players}/2 игроков)</span>
-                    <button class="btn" onclick="joinRoom('${r.code}')">Войти</button>
+                    <span>Room: ${r.code} (${r.players}/2) Bet: ${r.bet} USDT</span>
+                    <button class="btn" onclick="joinRoom('${r.code}', ${r.bet})">Join</button>
                 </div>
             `).join('');
         }
@@ -874,7 +1359,11 @@
         }
 
         function createRoom() {
-            connectWS(() => ws.send(JSON.stringify({ type: 'create' })));
+            if (!currentUser) { alert('Please login to play multiplayer'); return; }
+            currentBet = parseInt(document.getElementById('betSelect').value);
+            if (!checkBet(currentBet)) return;
+            deductBet(currentBet);
+            connectWS(() => ws.send(JSON.stringify({ type: 'create', bet: currentBet })));
         }
 
         function refreshRooms() {
@@ -883,8 +1372,12 @@
             }
         }
 
-        function joinRoom(code) {
-            connectWS(() => ws.send(JSON.stringify({ type: 'join', roomCode: code })));
+        function joinRoom(code, bet) {
+            if (!currentUser) { alert('Please login to play multiplayer'); return; }
+            currentBet = bet;
+            if (!checkBet(currentBet)) return;
+            deductBet(currentBet);
+            connectWS(() => ws.send(JSON.stringify({ type: 'join', roomCode: code, bet: currentBet })));
         }
     </script>
 </body>
