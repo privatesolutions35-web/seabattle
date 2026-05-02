@@ -312,12 +312,15 @@
                     if (gameMode === 'multi') {
                         document.getElementById('surrenderArea').style.display = 'flex';
                     }
-                    document.getElementById('playerLabel').innerHTML = playerNum === 1 ? '(Игрок 1)' : '(Игрок 2)';
+                    document.getElementById('playerLabel').innerHTML = playerNum === 1 ? '(Player 1)' : '(Player 2)';
                     enemyBoard = initBoard();
+                    playerBoard = JSON.parse(JSON.stringify(playerBoard));
                     renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
                     renderBoard(enemyBoard, 'enemyBoard', opponentShips, false);
-                    if (myTurn) startTurnTimer();
-                    else stopTurnTimer();
+                    stopTurnTimer();
+                    if (myTurn) {
+                        startTurnTimer();
+                    }
                     updateTurnStatus();
                     break;
                 case 'shotResult':
@@ -428,6 +431,8 @@
             selectShipSize(4);
             renderPlayerSetup();
             startSetupTimer();
+            document.getElementById('startGameBtn').disabled = false;
+            document.getElementById('startGameBtn').textContent = gameMode === 'multi' ? 'Ready!' : 'Start Game';
             if (soundState === 0) {
                 bgMusic.volume = 0.5;
                 bgMusic.play().catch(() => {});
@@ -815,7 +820,23 @@
             document.getElementById('gameOverPopup').style.display = 'none';
             document.getElementById('gameArea').classList.remove('active');
             document.getElementById('setup').classList.add('active');
-            initSetupBoard();
+            document.getElementById('surrenderArea').style.display = 'none';
+            stopTurnTimer();
+            
+            if (gameMode === 'multi') {
+                playerBoard = initBoard();
+                placedShips = [];
+                document.querySelectorAll('.ship-btn').forEach(b => { b.classList.remove('placed'); b.style.display = 'inline-block'; });
+                currentShipSize = 4;
+                selectShipSize(4);
+                renderPlayerSetup();
+                document.getElementById('startGameBtn').disabled = false;
+                document.getElementById('startGameBtn').textContent = 'Ready!';
+                document.getElementById('status').textContent = 'Place your ships (Player ' + playerNum + ')';
+                startSetupTimer();
+            } else {
+                initSetupBoard();
+            }
         }
 
         function createRoom() {
