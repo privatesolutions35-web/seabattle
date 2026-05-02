@@ -71,6 +71,14 @@
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .winner { animation: fadeIn 0.5s; color: #00ff88; font-size: 2em; }
         .player-num { color: #00ff88; }
+        .sound-btn {
+            background: transparent; border: 2px solid #00d4ff; border-radius: 50%;
+            width: 40px; height: 40px; font-size: 1.2em; cursor: pointer; margin-left: 20px;
+            transition: all 0.3s;
+        }
+        .sound-btn:hover { background: rgba(0, 212, 255, 0.3); }
+        .sound-btn.music-off { border-color: #ffaa00; }
+        .sound-btn.all-off { border-color: #ff4444; }
         .room-list { margin: 20px 0; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto; }
         .room-item {
             padding: 10px; margin: 5px 0; background: rgba(0, 212, 255, 0.1);
@@ -86,7 +94,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🚢 Морской бой <span id="onlineCount" style="font-size: 0.5em; color: #00ff88;">Игроков онлайн: 0</span></h1>
+        <h1>🚢 Морской бой <span id="onlineCount" style="font-size: 0.5em; color: #00ff88;">Игроков онлайн: 0</span> <button class="sound-btn" id="soundToggle" onclick="toggleSound()">🔊</button></h1>
         <div class="mode-select">
             <button class="mode-btn" id="btnBot" onclick="selectMode('bot')">Игра с ботом</button>
             <button class="mode-btn" id="btnMulti" onclick="selectMode('multi')">Мультиплеер</button>
@@ -161,6 +169,50 @@
         let myTurn = true, multiEnemyShips = [];
         let setupTimer = null;
         let setupTimeLeft = 45;
+        
+        let soundState = 0; // 0 = all on, 1 = music off, 2 = all off
+        let bgMusic = new Audio('/audio/Crescent-Moon(chosic.com).mp3');
+        let shootSound = new Audio('/audio/shooting-an-optical-sight-on-a-rifle.mp3');
+        let missSound = new Audio('/audio/ebf3f2b0fc87877.mp3');
+        let hitSound = new Audio('/audio/deafening-close-explosion.mp3');
+        let winSound = new Audio('/audio/c0a42ebbc6835a6.mp3');
+        let loseSound = new Audio('/audio/defeat.mp3');
+        
+        bgMusic.loop = true;
+        bgMusic.volume = 0.5;
+        
+        function playSound(sound) {
+            if (soundState >= 2) return;
+            if (sound) {
+                sound.currentTime = 0;
+                sound.play().catch(() => {});
+            }
+        }
+        
+        function toggleSound() {
+            soundState = (soundState + 1) % 3;
+            const btn = document.getElementById('soundToggle');
+            btn.classList.remove('music-off', 'all-off');
+            if (soundState === 0) {
+                btn.textContent = '🔊';
+                if (!bgMusic.paused) bgMusic.play().catch(() => {});
+            } else if (soundState === 1) {
+                btn.textContent = '🎵';
+                btn.classList.add('music-off');
+                bgMusic.pause();
+            } else {
+                btn.textContent = '🔇';
+                btn.classList.add('all-off');
+                bgMusic.pause();
+            }
+        }
+        
+        function setGameMusicVolume(inGame) {
+            if (soundState === 0) {
+                bgMusic.volume = inGame ? 0.25 : 0.5;
+                if (!bgMusic.paused) bgMusic.play().catch(() => {});
+            }
+        }
 
         function connectWS(callback) {
             if (ws && ws.readyState === WebSocket.OPEN) {
@@ -322,6 +374,10 @@
             selectShipSize(4);
             renderPlayerSetup();
             startSetupTimer();
+            if (soundState === 0) {
+                bgMusic.volume = 0.5;
+                bgMusic.play().catch(() => {});
+            }
         }
 
         function startSetupTimer() {
@@ -494,6 +550,10 @@
             renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
             renderBoard(enemyBoard, 'enemyBoard', enemyShips, false);
             
+            if (soundState === 0) {
+                bgMusic.volume = 0.25;
+            }
+            
             // Добавляем обработчики клика для стрельбы в режиме бота
             const enemyCells = document.querySelectorAll('#enemyBoard .cell');
             enemyCells.forEach(cell => {
@@ -549,17 +609,22 @@
 
         function playerShoot(row, col) {
             if (enemyBoard[row][col] === 1 || enemyBoard[row][col] === 2) return;
+            playSound(shootSound);
             if (enemyBoard[row][col] === 3) {
                 enemyBoard[row][col] = 2;
                 const hits = getShipCount(enemyBoard, enemyShips);
                 document.getElementById('status').textContent = 'Попал! Стреляйте снова';
+                setTimeout(() => playSound(hitSound), 200);
                 if (hits === 20) {
                     document.getElementById('status').innerHTML = '<span class="winner">ПОБЕДА! 🎉</span>';
                     document.getElementById('restartBtn').style.display = 'block';
+                    setTimeout(() => playSound(winSound), 300);
+                    bgMusic.pause();
                 }
             } else {
                 enemyBoard[row][col] = 1;
                 document.getElementById('status').textContent = 'Промах. Ход противника';
+                setTimeout(() => playSound(missSound), 200);
                 setTimeout(botTurn, 500);
             }
             renderBoard(enemyBoard, 'enemyBoard', enemyShips, false);
@@ -569,17 +634,22 @@
             let row, col;
             do { row = Math.floor(Math.random() * BOARD_SIZE); col = Math.floor(Math.random() * BOARD_SIZE); }
             while (playerBoard[row][col] === 1 || playerBoard[row][col] === 2);
+            playSound(shootSound);
             if (playerBoard[row][col] === 3) {
                 playerBoard[row][col] = 2;
                 const hits = getShipCount(playerBoard, placedShips);
                 document.getElementById('status').textContent = 'Противник попал! Его ход снова';
+                setTimeout(() => playSound(hitSound), 200);
                 if (hits === 20) {
                     document.getElementById('status').innerHTML = '<span class="winner">ПОРАЖЕНИЕ 😢</span>';
                     document.getElementById('restartBtn').style.display = 'block';
+                    setTimeout(() => playSound(loseSound), 300);
+                    bgMusic.pause();
                 }
             } else {
                 playerBoard[row][col] = 1;
                 document.getElementById('status').textContent = 'Противник промахнулся. Ваш ход';
+                setTimeout(() => playSound(missSound), 200);
             }
             renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
         }
