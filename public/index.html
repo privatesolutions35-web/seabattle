@@ -301,7 +301,7 @@
                     document.getElementById('status').textContent = 'Противник расставляет корабли...';
                     break;
                 case 'start':
-                    myTurn = msg.currentPlayer === playerId;
+                    myTurn = String(msg.currentPlayer) === String(playerId);
                     opponentShips = msg.opponentShips || [];
                     document.getElementById('setup').classList.remove('active');
                     document.getElementById('gameArea').classList.add('active');
@@ -313,12 +313,12 @@
                     enemyBoard = initBoard();
                     renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
                     renderBoard(enemyBoard, 'enemyBoard', opponentShips, false);
-                    startTurnTimer();
+                    if (myTurn) startTurnTimer();
+                    else stopTurnTimer();
                     updateTurnStatus();
                     break;
                 case 'shotResult':
-                    console.log('shotResult:', msg);
-                    if (msg.playerId === playerId) {
+                    if (String(msg.playerId) === String(playerId)) {
                         const cell = document.querySelector(`#enemyBoard .cell[data-row="${msg.row}"][data-col="${msg.col}"]`);
                         if (cell) cell.classList.add(msg.result === 'hit' || msg.result === 'sunk' ? 'hit' : 'miss');
                         enemyBoard[msg.row][msg.col] = msg.result === 'hit' || msg.result === 'sunk' ? 2 : 1;
@@ -336,14 +336,14 @@
                     }
                     break;
                 case 'nextTurn':
-                    myTurn = msg.playerId === playerId;
+                    myTurn = String(msg.playerId) === String(playerId);
                     updateTurnStatus();
                     if (myTurn) startTurnTimer();
                     else stopTurnTimer();
                     break;
                 case 'gameOver':
                     stopTurnTimer();
-                    const won = msg.winner === playerId;
+                    const won = String(msg.winner) === String(playerId);
                     setTimeout(() => showGameOverPopup(won), 500);
                     break;
                     break;
