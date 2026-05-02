@@ -314,12 +314,17 @@
                     if (msg.playerId === playerId) {
                         const cell = document.querySelector(`#enemyBoard .cell[data-row="${msg.row}"][data-col="${msg.col}"]`);
                         if (cell) cell.classList.add(msg.result === 'hit' || msg.result === 'sunk' ? 'hit' : 'miss');
+                        enemyBoard[msg.row][msg.col] = msg.result === 'hit' || msg.result === 'sunk' ? 2 : 1;
                         setTimeout(() => playSound(msg.result === 'hit' || msg.result === 'sunk' ? hitSound : missSound), 200);
+                        if (msg.result === 'hit' || msg.result === 'sunk') {
+                            startTurnTimer();
+                        }
                     } else {
                         const cell = document.querySelector(`#playerBoardGame .cell[data-row="${msg.row}"][data-col="${msg.col}"]`);
                         if (cell) {
                             cell.classList.add(msg.result === 'hit' || msg.result === 'sunk' ? 'hit' : 'miss');
                         }
+                        playerBoard[msg.row][msg.col] = msg.result === 'hit' || msg.result === 'sunk' ? 2 : 1;
                         setTimeout(() => playSound(msg.result === 'hit' || msg.result === 'sunk' ? hitSound : missSound), 200);
                     }
                     break;
@@ -674,7 +679,6 @@
             if (!myTurn) return;
             if (enemyBoard[row][col] === 1 || enemyBoard[row][col] === 2) return;
             playSound(shootSound);
-            stopTurnTimer();
             ws.send(JSON.stringify({ type: 'shoot', row, col }));
         }
 
