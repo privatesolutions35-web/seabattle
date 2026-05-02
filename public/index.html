@@ -104,81 +104,81 @@
 </head>
 <body>
     <div class="container">
-        <h1>🚢 Морской бой <span id="onlineCount" style="font-size: 0.5em; color: #00ff88;">Игроков онлайн: 0</span> <button class="sound-btn" id="soundToggle" onclick="toggleSound()">🔊</button></h1>
+        <h1>🚢 Sea Battle <span id="onlineCount" style="font-size: 0.5em; color: #00ff88;">Online: 0</span> <button class="sound-btn" id="soundToggle" onclick="toggleSound()">🔊</button></h1>
         <div class="mode-select">
-            <button class="mode-btn" id="btnBot" onclick="selectMode('bot')">Игра с ботом</button>
-            <button class="mode-btn" id="btnMulti" onclick="selectMode('multi')">Мультиплеер</button>
+            <button class="mode-btn" id="btnBot" onclick="selectMode('bot')">vs Bot</button>
+            <button class="mode-btn" id="btnMulti" onclick="selectMode('multi')">Multiplayer</button>
         </div>
-        <div id="status" class="status">Выберите режим игры</div>
-        <div id="timer" class="timer" style="display:none">Осталось времени: <span id="timerValue">45</span> сек</div>
+        <div id="status" class="status">Select game mode</div>
+        <div id="timer" class="timer" style="display:none">Time left: <span id="timerValue">45</span>s</div>
         
         <div id="setup" class="ship-selector">
-            <h3>Расставьте корабли</h3>
+            <h3>Place your ships</h3>
             <div class="setup-area">
                 <div class="board-container">
-                    <div class="board-title">Ваше поле</div>
+                    <div class="board-title">Your board</div>
                     <div class="board" id="playerBoard"></div>
                 </div>
                 <div class="setup-controls">
                     <div class="controls">
-                        <button class="ship-btn" data-size="4" onclick="selectShipSize(4)">Авианосец (4)</button>
-                        <button class="ship-btn" data-size="3" onclick="selectShipSize(3)">Крейсер (3)</button>
-                        <button class="ship-btn" data-size="3" onclick="selectShipSize(3)">Крейсер (3)</button>
-                        <button class="ship-btn" data-size="2" onclick="selectShipSize(2)">Эсминец (2)</button>
-                        <button class="ship-btn" data-size="2" onclick="selectShipSize(2)">Эсминец (2)</button>
-                        <button class="ship-btn" data-size="2" onclick="selectShipSize(2)">Эсминец (2)</button>
-                        <button class="ship-btn" data-size="1" onclick="selectShipSize(1)">Подводная лодка (1)</button>
-                        <button class="ship-btn" data-size="1" onclick="selectShipSize(1)">Подводная лодка (1)</button>
-                        <button class="ship-btn" data-size="1" onclick="selectShipSize(1)">Подводная лодка (1)</button>
-                        <button class="ship-btn" data-size="1" onclick="selectShipSize(1)">Подводная лодка (1)</button>
+                        <button class="ship-btn" data-size="4" onclick="selectShipSize(4)">🚢(4)</button>
+                        <button class="ship-btn" data-size="3" onclick="selectShipSize(3)">🚤(3)</button>
+                        <button class="ship-btn" data-size="3" onclick="selectShipSize(3)">🚤(3)</button>
+                        <button class="ship-btn" data-size="2" onclick="selectShipSize(2)">🛥️(2)</button>
+                        <button class="ship-btn" data-size="2" onclick="selectShipSize(2)">🛥️(2)</button>
+                        <button class="ship-btn" data-size="2" onclick="selectShipSize(2)">🛥️(2)</button>
+                        <button class="ship-btn" data-size="1" onclick="selectShipSize(1)">⚓(1)</button>
+                        <button class="ship-btn" data-size="1" onclick="selectShipSize(1)">⚓(1)</button>
+                        <button class="ship-btn" data-size="1" onclick="selectShipSize(1)">⚓(1)</button>
+                        <button class="ship-btn" data-size="1" onclick="selectShipSize(1)">⚓(1)</button>
                     </div>
                     <div class="controls">
-                        <button class="btn" onclick="rotateShip()">Повернуть (горизонтально)</button>
-                        <button class="btn" onclick="randomPlace()">Случайная расстановка</button>
-                        <button class="btn" onclick="clearBoard()">Очистить</button>
+                        <button class="btn" onclick="rotateShip()">Rotate (horizontal)</button>
+                        <button class="btn" onclick="randomPlace()">Random</button>
+                        <button class="btn" onclick="clearBoard()">Clear</button>
                     </div>
-                    <button class="btn" id="startGameBtn" onclick="startGame()">Начать игру</button>
+                    <button class="btn" id="startGameBtn" onclick="startGame()">Start Game</button>
                 </div>
             </div>
         </div>
 
         <div class="game-area" id="gameArea">
             <div class="board-container">
-                <div class="board-title">Ваш флот <span id="playerLabel"></span></div>
+                <div class="board-title">Your fleet <span id="playerLabel"></span></div>
                 <div class="board" id="playerBoardGame"></div>
             </div>
             <div class="board-container">
-                <div class="board-title">Вражеский флот</div>
+                <div class="board-title">Enemy fleet</div>
                 <div class="board" id="enemyBoard"></div>
             </div>
             <div class="controls" id="surrenderArea" style="display:none">
-                <button class="btn" onclick="surrender()">Сдаться</button>
+                <button class="btn" onclick="surrender()">Surrender</button>
             </div>
         </div>
 
         <div class="lobby" id="lobby">
-            <h3>Мультиплеер</h3>
+            <h3>Multiplayer</h3>
             <div class="controls">
-                <button class="btn" onclick="createRoom()">Создать комнату</button>
-                <button class="btn" onclick="refreshRooms()">Обновить список</button>
+                <button class="btn" onclick="createRoom()">Create Room</button>
+                <button class="btn" onclick="refreshRooms()">Refresh</button>
             </div>
-            <h4>Доступные комнаты:</h4>
+            <h4>Available rooms:</h4>
             <div class="room-list" id="roomList">
-                <div class="waiting">Загрузка...</div>
+                <div class="waiting">Loading...</div>
             </div>
         </div>
 
         <div class="controls">
-            <button class="btn" id="restartBtn" onclick="restartGame()" style="display:none">Новая игра</button>
+            <button class="btn" id="restartBtn" onclick="restartGame()" style="display:none">New Game</button>
         </div>
         
         <div id="gameOverPopup" class="popup">
             <div class="popup-content">
-                <h2 id="gameOverTitle">ПОБЕДА!</h2>
-                <p id="gameOverMessage">Вы победили!</p>
+                <h2 id="gameOverTitle">VICTORY!</h2>
+                <p id="gameOverMessage">You won!</p>
                 <div class="controls">
-                    <button class="btn" onclick="restartGame()">Играть снова</button>
-                    <button class="btn" onclick="location.reload()">В главное меню</button>
+                    <button class="btn" onclick="restartGame()">Play Again</button>
+                    <button class="btn" onclick="location.reload()">Main Menu</button>
                 </div>
             </div>
         </div>
@@ -260,11 +260,14 @@
             ws = new WebSocket(`${protocol}//${window.location.host}`);
             ws.onopen = () => {
                 ws.send(JSON.stringify({ type: 'getOnline' }));
-                document.getElementById('status').textContent = 'Подключено. Выберите режим игры';
+                document.getElementById('status').textContent = 'Connected. Select game mode';
                 if (callback) callback();
             };
             ws.onmessage = (e) => {
                 const msg = JSON.parse(e.data);
+                if (msg.type === 'start' || msg.type === 'nextTurn') {
+                    console.log('WS message:', msg.type, 'playerId:', playerId, 'msg.playerId:', msg.currentPlayer || msg.playerId);
+                }
                 handleWSMessage(msg);
             };
             ws.onerror = (e) => {
@@ -284,21 +287,21 @@
                     roomCode = msg.roomCode;
                     playerId = msg.playerId;
                     playerNum = 1;
-                    document.getElementById('status').textContent = `Комната создана: ${roomCode}. Ожидание игрока...`;
+                    document.getElementById('status').textContent = `Room created: ${roomCode}. Waiting for player...`;
                     break;
                 case 'joined':
                     roomCode = msg.roomCode;
                     playerId = msg.playerId;
                     playerNum = 2;
-                    document.getElementById('status').textContent = 'Вы присоединились к комнате';
+                    document.getElementById('status').textContent = 'You joined the room';
                     startMultiSetup();
                     break;
                 case 'playerJoined':
-                    document.getElementById('status').textContent = 'Игрок присоединился! Расставьте корабли';
+                    document.getElementById('status').textContent = 'Player joined! Place your ships';
                     startMultiSetup();
                     break;
                 case 'playerReady':
-                    document.getElementById('status').textContent = 'Противник расставляет корабли...';
+                    document.getElementById('status').textContent = 'Opponent placing ships...';
                     break;
                 case 'start':
                     myTurn = String(msg.currentPlayer) === String(playerId);
@@ -319,19 +322,15 @@
                     break;
                 case 'shotResult':
                     if (String(msg.playerId) === String(playerId)) {
-                        const cell = document.querySelector(`#enemyBoard .cell[data-row="${msg.row}"][data-col="${msg.col}"]`);
-                        if (cell) cell.classList.add(msg.result === 'hit' || msg.result === 'sunk' ? 'hit' : 'miss');
                         enemyBoard[msg.row][msg.col] = msg.result === 'hit' || msg.result === 'sunk' ? 2 : 1;
+                        renderBoard(enemyBoard, 'enemyBoard', opponentShips, false);
                         setTimeout(() => playSound(msg.result === 'hit' || msg.result === 'sunk' ? hitSound : missSound), 200);
                         if (msg.result === 'miss') {
                             stopTurnTimer();
                         }
                     } else {
-                        const cell = document.querySelector(`#playerBoardGame .cell[data-row="${msg.row}"][data-col="${msg.col}"]`);
-                        if (cell) {
-                            cell.classList.add(msg.result === 'hit' || msg.result === 'sunk' ? 'hit' : 'miss');
-                        }
                         playerBoard[msg.row][msg.col] = msg.result === 'hit' || msg.result === 'sunk' ? 2 : 1;
+                        renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
                         setTimeout(() => playSound(msg.result === 'hit' || msg.result === 'sunk' ? hitSound : missSound), 200);
                     }
                     break;
@@ -360,7 +359,7 @@
         function renderRoomList(rooms) {
             const list = document.getElementById('roomList');
             if (!rooms || rooms.length === 0) {
-                list.innerHTML = '<div class="waiting">Нет доступных комнат</div>';
+                list.innerHTML = '<div class="waiting">No available rooms</div>';
                 return;
             }
             list.innerHTML = rooms.map(r => `
@@ -372,7 +371,7 @@
         }
 
         function updateTurnStatus() {
-            document.getElementById('status').textContent = myTurn ? 'Ваш ход' : 'Ход противника';
+            document.getElementById('status').textContent = myTurn ? 'Your turn' : 'Opponent turn';
         }
 
         function initBoard() { return Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0)); }
@@ -410,7 +409,7 @@
             document.getElementById('setup').classList.remove('active');
             document.getElementById('gameArea').classList.remove('active');
             document.getElementById('lobby').classList.remove('active');
-            document.getElementById('status').textContent = 'Выберите режим игры';
+            document.getElementById('status').textContent = 'Select game mode';
             
             if (mode === 'bot') {
                 document.getElementById('setup').classList.add('active');
@@ -456,7 +455,7 @@
                     stopSetupTimer();
                     if (placedShips.length < 10) {
                         randomPlace();
-                        document.getElementById('status').textContent = 'Время вышло! Корабли расставлены случайно';
+                        document.getElementById('status').textContent = 'Time up! Ships placed randomly';
                         setTimeout(() => {
                             startGame();
                         }, 1000);
@@ -647,7 +646,7 @@
         }
 
         function startGame() {
-            if (placedShips.length < 10) { alert('Расставьте все корабли!'); return; }
+            if (placedShips.length < 10) { alert('Place all ships!'); return; }
             stopSetupTimer();
             if (gameMode === 'bot') startBotGame();
             else sendReady();
@@ -659,7 +658,7 @@
             document.getElementById('gameArea').classList.add('active');
             enemyBoard = initBoard();
             placeEnemyShips();
-            document.getElementById('status').textContent = 'Ваш ход';
+            document.getElementById('status').textContent = 'Your turn';
             renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
             renderBoard(enemyBoard, 'enemyBoard', enemyShips, false);
             
@@ -682,20 +681,27 @@
             document.getElementById('lobby').classList.remove('active');
             document.getElementById('setup').classList.add('active');
             initSetupBoard();
-            document.getElementById('startGameBtn').textContent = 'Я готов!';
-            document.getElementById('status').textContent = `Расставьте корабли (Игрок ${playerNum})`;
+            document.getElementById('startGameBtn').textContent = 'Ready!';
+            document.getElementById('status').textContent = `Place your ships (Player ${playerNum})`;
         }
 
         function sendReady() {
             ws.send(JSON.stringify({ type: 'ready', board: playerBoard, ships: placedShips }));
-            document.getElementById('status').textContent = 'Ожидаем противника...';
+            document.getElementById('status').textContent = 'Waiting for opponent...';
             document.getElementById('startGameBtn').disabled = true;
         }
 
         function multiShoot(row, col) {
-            console.log('multiShoot:', row, col, 'myTurn:', myTurn, 'enemyBoard:', enemyBoard[row][col]);
-            if (!myTurn) { console.log('Not my turn'); return; }
-            if (enemyBoard[row][col] === 1 || enemyBoard[row][col] === 2) { console.log('Already shot here'); return; }
+            console.log('multiShoot called - playerId:', playerId, 'roomCode:', roomCode, 'myTurn:', myTurn, 'gameMode:', gameMode);
+            console.log('enemyBoard value:', enemyBoard[row][col]);
+            if (!myTurn) { 
+                document.getElementById('status').textContent = 'Not your turn!';
+                return; 
+            }
+            if (enemyBoard[row][col] === 1 || enemyBoard[row][col] === 2) { 
+                document.getElementById('status').textContent = 'Already shot here!';
+                return; 
+            }
             playSound(shootSound);
             ws.send(JSON.stringify({ type: 'shoot', row, col }));
         }
@@ -728,7 +734,7 @@
             if (enemyBoard[row][col] === 3) {
                 enemyBoard[row][col] = 2;
                 const hits = getShipCount(enemyBoard, enemyShips);
-                document.getElementById('status').textContent = 'Попал! Стреляйте снова';
+                document.getElementById('status').textContent = 'Hit! Shoot again';
                 setTimeout(() => playSound(hitSound), 200);
                 if (hits >= 20) {
                     document.getElementById('status').innerHTML = '<span class="winner">ПОБЕДА! 🎉</span>';
@@ -736,7 +742,7 @@
                 }
             } else {
                 enemyBoard[row][col] = 1;
-                document.getElementById('status').textContent = 'Промах. Ход противника';
+                document.getElementById('status').textContent = 'Miss. Opponent turn';
                 setTimeout(() => playSound(missSound), 200);
                 setTimeout(botTurn, 500);
             }
@@ -751,7 +757,7 @@
             if (playerBoard[row][col] === 3) {
                 playerBoard[row][col] = 2;
                 const hits = getShipCount(playerBoard, placedShips);
-                document.getElementById('status').textContent = 'Противник попал! Его ход снова';
+                document.getElementById('status').textContent = 'Opponent hit! His turn again';
                 setTimeout(() => playSound(hitSound), 200);
                 if (hits >= 20) {
                     document.getElementById('status').innerHTML = '<span class="winner">ПОРАЖЕНИЕ 😢</span>';
@@ -759,7 +765,7 @@
                 }
             } else {
                 playerBoard[row][col] = 1;
-                document.getElementById('status').textContent = 'Противник промахнулся. Ваш ход';
+                document.getElementById('status').textContent = 'Opponent missed. Your turn';
                 setTimeout(() => playSound(missSound), 200);
             }
             renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
