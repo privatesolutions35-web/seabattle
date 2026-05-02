@@ -305,6 +305,7 @@
                     break;
                 case 'start':
                     myTurn = String(msg.currentPlayer) === String(playerId);
+                    console.log('START: currentPlayer:', msg.currentPlayer, 'playerId:', playerId, 'myTurn:', myTurn);
                     opponentShips = msg.opponentShips || [];
                     document.getElementById('setup').classList.remove('active');
                     document.getElementById('gameArea').classList.add('active');
@@ -317,11 +318,15 @@
                     playerBoard = JSON.parse(JSON.stringify(playerBoard));
                     renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
                     renderBoard(enemyBoard, 'enemyBoard', opponentShips, false);
-                    stopTurnTimer();
-                    if (myTurn) {
-                        startTurnTimer();
-                    }
-                    updateTurnStatus();
+                    
+                    setTimeout(() => {
+                        console.log('DELAYED CHECK: myTurn:', myTurn);
+                        stopTurnTimer();
+                        if (myTurn) {
+                            startTurnTimer();
+                        }
+                        updateTurnStatus();
+                    }, 100);
                     break;
                 case 'shotResult':
                     if (String(msg.playerId) === String(playerId)) {
@@ -331,17 +336,30 @@
                         if (msg.result === 'miss') {
                             stopTurnTimer();
                         }
+                        const enemyHits = getShipCount(enemyBoard, opponentShips);
+                        if (enemyHits >= 20) {
+                            setTimeout(() => showGameOverPopup(true), 500);
+                            stopTurnTimer();
+                        }
                     } else {
                         playerBoard[msg.row][msg.col] = msg.result === 'hit' || msg.result === 'sunk' ? 2 : 1;
                         renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
                         setTimeout(() => playSound(msg.result === 'hit' || msg.result === 'sunk' ? hitSound : missSound), 200);
+                        const myHits = getShipCount(playerBoard, placedShips);
+                        if (myHits >= 20) {
+                            setTimeout(() => showGameOverPopup(false), 500);
+                            stopTurnTimer();
+                        }
                     }
                     break;
                 case 'nextTurn':
+                    console.log('NEXTTURN: playerId:', msg.playerId, 'myId:', playerId);
                     myTurn = String(msg.playerId) === String(playerId);
                     updateTurnStatus();
-                    if (myTurn) startTurnTimer();
-                    else stopTurnTimer();
+                    setTimeout(() => {
+                        stopTurnTimer();
+                        if (myTurn) startTurnTimer();
+                    }, 100);
                     break;
                 case 'gameOver':
                     stopTurnTimer();
