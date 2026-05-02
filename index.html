@@ -83,7 +83,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🚢 Морской бой</h1>
+        <h1>🚢 Морской бой <span id="onlineCount" style="font-size: 0.5em; color: #00ff88;">Игроков онлайн: 0</span></h1>
         <div class="mode-select">
             <button class="mode-btn" id="btnBot" onclick="selectMode('bot')">Игра с ботом</button>
             <button class="mode-btn" id="btnMulti" onclick="selectMode('multi')">Мультиплеер</button>
@@ -164,6 +164,7 @@
             const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             ws = new WebSocket(`${protocol}//${window.location.host}`);
             ws.onopen = () => {
+                ws.send(JSON.stringify({ type: 'getOnline' }));
                 if (callback) callback();
             };
             ws.onmessage = (e) => {
@@ -177,6 +178,9 @@
 
         function handleWSMessage(msg) {
             switch (msg.type) {
+                case 'onlineCount':
+                    document.getElementById('onlineCount').textContent = `Игроков онлайн: ${msg.count}`;
+                    break;
                 case 'roomsList':
                     renderRoomList(msg.rooms);
                     break;
@@ -273,8 +277,12 @@
                     if (board[i][j] === 1) cell.classList.add('miss');
                     if (board[i][j] === 2) cell.classList.add('hit');
                     if (board[i][j] === 3) cell.classList.add('ship-hit');
-                    if (elementId === 'enemyBoard' && gameMode === 'multi' && myTurn) {
-                        cell.onclick = () => multiShoot(i, j);
+                    if (elementId === 'enemyBoard') {
+                        if (gameMode === 'multi' && myTurn) {
+                            cell.onclick = () => multiShoot(i, j);
+                        } else if (gameMode === 'bot') {
+                            cell.onclick = () => playerShoot(i, j);
+                        }
                     }
                     boardEl.appendChild(cell);
                 }
@@ -436,6 +444,16 @@
             document.getElementById('status').textContent = 'Ваш ход';
             renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
             renderBoard(enemyBoard, 'enemyBoard', enemyShips, false);
+            
+            // Добавляем обработчики клика для стрельбы в режиме бота
+            const enemyCells = document.querySelectorAll('#enemyBoard .cell');
+            enemyCells.forEach(cell => {
+                cell.onclick = () => {
+                    const row = parseInt(cell.dataset.row);
+                    const col = parseInt(cell.dataset.col);
+                    playerShoot(row, col);
+                };
+            });
         }
 
         function startMultiSetup() {

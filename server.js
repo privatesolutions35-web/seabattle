@@ -9,8 +9,11 @@ const wss = new WebSocket.Server({ server });
 
 const rooms = new Map();
 const players = new Map();
+let onlineCount = 0;
 
 wss.on('connection', (ws) => {
+    onlineCount++;
+    broadcastOnlineCount();
     let playerId = null;
     let roomCode = null;
 
@@ -27,6 +30,10 @@ wss.on('connection', (ws) => {
                         }
                     });
                     ws.send(JSON.stringify({ type: 'roomsList', rooms: roomList }));
+                    break;
+
+                case 'getOnline':
+                    ws.send(JSON.stringify({ type: 'onlineCount', count: onlineCount }));
                     break;
 
                 case 'create':
@@ -134,6 +141,8 @@ wss.on('connection', (ws) => {
     });
 
     ws.on('close', () => {
+        onlineCount--;
+        broadcastOnlineCount();
         if (playerId && roomCode) {
             const room = rooms.get(roomCode);
             if (room) {
@@ -177,6 +186,14 @@ function generateId() {
 
 function generateRoomCode() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
+function broadcastOnlineCount() {
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'onlineCount', count: onlineCount }));
+        }
+    });
 }
 
 app.use(express.static(path.join(__dirname, 'public')));
