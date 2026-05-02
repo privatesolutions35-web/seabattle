@@ -2,10 +2,17 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
+const fs = require('fs');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
+
+const publicPath = path.join(__dirname, 'public');
+const indexPath = path.join(publicPath, 'index.html');
+
+console.log('Public path:', publicPath);
+console.log('Index exists:', fs.existsSync(indexPath));
 
 const rooms = new Map();
 const players = new Map();
@@ -196,13 +203,18 @@ function broadcastOnlineCount() {
     });
 }
 
-app.use(express.static(path.resolve(__dirname, 'public')));
+app.use(express.static(publicPath));
+
+app.get('/', (req, res) => {
+    res.sendFile(indexPath);
+});
 
 app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, 'public', 'index.html'));
+    res.sendFile(indexPath);
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`Serving static from: ${path.resolve(__dirname, 'public')}`);
 });
