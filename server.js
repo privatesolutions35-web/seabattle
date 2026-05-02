@@ -19,6 +19,16 @@ wss.on('connection', (ws) => {
             const msg = JSON.parse(data);
 
             switch (msg.type) {
+                case 'getRooms':
+                    const roomList = [];
+                    rooms.forEach((room, code) => {
+                        if (room.gameState === 'waiting' && room.players.length < 2) {
+                            roomList.push({ code, players: room.players.length });
+                        }
+                    });
+                    ws.send(JSON.stringify({ type: 'roomsList', rooms: roomList }));
+                    break;
+
                 case 'create':
                     playerId = generateId();
                     roomCode = generateRoomCode();
