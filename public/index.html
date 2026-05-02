@@ -304,8 +304,10 @@
                     document.getElementById('status').textContent = 'Opponent placing ships...';
                     break;
                 case 'start':
-                    myTurn = String(msg.currentPlayer) === String(playerId);
-                    console.log('START: currentPlayer:', msg.currentPlayer, 'playerId:', playerId, 'myTurn:', myTurn);
+                    console.log('START: currentPlayer:', msg.currentPlayer, 'playerId:', playerId, 'playerNum:', playerNum);
+                    myTurn = (playerNum === 1 && String(msg.currentPlayer) === String(playerId)) || 
+                             (playerNum === 2 && String(msg.currentPlayer) !== String(playerId));
+                    console.log('START: myTurn calculated:', myTurn);
                     opponentShips = msg.opponentShips || [];
                     document.getElementById('setup').classList.remove('active');
                     document.getElementById('gameArea').classList.add('active');
@@ -320,13 +322,13 @@
                     renderBoard(enemyBoard, 'enemyBoard', opponentShips, false);
                     
                     setTimeout(() => {
-                        console.log('DELAYED CHECK: myTurn:', myTurn);
+                        console.log('DELAYED CHECK: myTurn:', myTurn, 'timer running:', !!turnTimer);
                         stopTurnTimer();
-                        if (myTurn) {
+                        if (myTurn && !turnTimer) {
                             startTurnTimer();
                         }
                         updateTurnStatus();
-                    }, 100);
+                    }, 200);
                     break;
                 case 'shotResult':
                     if (String(msg.playerId) === String(playerId)) {
@@ -353,12 +355,17 @@
                     }
                     break;
                 case 'nextTurn':
-                    console.log('NEXTTURN: playerId:', msg.playerId, 'myId:', playerId);
+                    console.log('NEXTTURN: msg.playerId:', msg.playerId, 'playerId:', playerId);
                     myTurn = String(msg.playerId) === String(playerId);
+                    console.log('NEXTTURN: myTurn set to:', myTurn);
+                    renderBoard(enemyBoard, 'enemyBoard', opponentShips, false);
                     updateTurnStatus();
                     setTimeout(() => {
                         stopTurnTimer();
-                        if (myTurn) startTurnTimer();
+                        if (myTurn) {
+                            console.log('Starting timer for my turn');
+                            startTurnTimer();
+                        }
                     }, 100);
                     break;
                 case 'gameOver':
@@ -392,7 +399,14 @@
         }
 
         function updateTurnStatus() {
-            document.getElementById('status').textContent = myTurn ? 'Your turn' : 'Opponent turn';
+            const statusEl = document.getElementById('status');
+            if (myTurn) {
+                statusEl.textContent = 'YOUR TURN! Click on enemy board to shoot';
+                statusEl.style.background = 'rgba(0, 255, 136, 0.2)';
+            } else {
+                statusEl.textContent = 'Opponent turn...';
+                statusEl.style.background = 'rgba(0, 212, 255, 0.1)';
+            }
         }
 
         function initBoard() { return Array(BOARD_SIZE).fill(null).map(() => Array(BOARD_SIZE).fill(0)); }
@@ -437,7 +451,9 @@
                 initSetupBoard();
             } else {
                 document.getElementById('lobby').classList.add('active');
-                connectWS(refreshRooms);
+                connectWS(() => {
+                    setTimeout(refreshRooms, 500);
+                });
             }
         }
 
