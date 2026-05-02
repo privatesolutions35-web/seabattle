@@ -79,6 +79,9 @@
         .room-item button { padding: 5px 15px; font-size: 0.9em; }
         .setup-area { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; align-items: flex-start; }
         .setup-controls { text-align: center; }
+        .timer { text-align: center; font-size: 1.3em; color: #ff6b6b; margin: 10px 0; padding: 10px; background: rgba(255, 107, 107, 0.1); border-radius: 10px; }
+        .timer.warning { color: #ff0000; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
@@ -89,6 +92,7 @@
             <button class="mode-btn" id="btnMulti" onclick="selectMode('multi')">Мультиплеер</button>
         </div>
         <div id="status" class="status">Выберите режим игры</div>
+        <div id="timer" class="timer" style="display:none">Осталось времени: <span id="timerValue">45</span> сек</div>
         
         <div id="setup" class="ship-selector">
             <h3>Расставьте корабли</h3>
@@ -155,6 +159,8 @@
         let gameMode = '', placedShips = [];
         let ws = null, playerId = null, roomCode = null, playerNum = 0;
         let myTurn = true, multiEnemyShips = [];
+        let setupTimer = null;
+        let setupTimeLeft = 45;
 
         function connectWS(callback) {
             if (ws && ws.readyState === WebSocket.OPEN) {
@@ -315,6 +321,46 @@
             currentShipSize = 4;
             selectShipSize(4);
             renderPlayerSetup();
+            startSetupTimer();
+        }
+
+        function startSetupTimer() {
+            stopSetupTimer();
+            setupTimeLeft = 45;
+            const timerEl = document.getElementById('timer');
+            const timerValue = document.getElementById('timerValue');
+            timerEl.style.display = 'block';
+            timerValue.textContent = setupTimeLeft;
+            timerEl.classList.remove('warning');
+            
+            setupTimer = setInterval(() => {
+                setupTimeLeft--;
+                timerValue.textContent = setupTimeLeft;
+                
+                if (setupTimeLeft <= 10) {
+                    timerEl.classList.add('warning');
+                }
+                
+                if (setupTimeLeft <= 0) {
+                    stopSetupTimer();
+                    if (placedShips.length < 10) {
+                        randomPlace();
+                        document.getElementById('status').textContent = 'Время вышло! Корабли расставлены случайно';
+                        setTimeout(() => {
+                            startGame();
+                        }, 1000);
+                    }
+                }
+            }, 1000);
+        }
+
+        function stopSetupTimer() {
+            if (setupTimer) {
+                clearInterval(setupTimer);
+                setupTimer = null;
+            }
+            document.getElementById('timer').style.display = 'none';
+            document.getElementById('timer').classList.remove('warning');
         }
 
         function renderPlayerSetup() {
@@ -433,11 +479,13 @@
 
         function startGame() {
             if (placedShips.length < 10) { alert('Расставьте все корабли!'); return; }
+            stopSetupTimer();
             if (gameMode === 'bot') startBotGame();
             else sendReady();
         }
 
         function startBotGame() {
+            stopSetupTimer();
             document.getElementById('setup').classList.remove('active');
             document.getElementById('gameArea').classList.add('active');
             enemyBoard = initBoard();
