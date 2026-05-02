@@ -190,6 +190,9 @@
         let myTurn = true, multiEnemyShips = [];
         let setupTimer = null;
         let setupTimeLeft = 45;
+        let turnTimer = null;
+        let turnTimeLeft = 10;
+        let opponentShips = [];
         
         let soundState = 0; // 0 = all on, 1 = music off, 2 = all off
         let bgMusic = new Audio('/audio/Crescent-Moon(chosic.com).mp3');
@@ -296,32 +299,41 @@
                     break;
                 case 'start':
                     myTurn = msg.currentPlayer === playerId;
+                    opponentShips = msg.opponentShips || [];
                     document.getElementById('setup').classList.remove('active');
                     document.getElementById('gameArea').classList.add('active');
                     document.getElementById('lobby').classList.remove('active');
                     document.getElementById('playerLabel').innerHTML = playerNum === 1 ? '(Игрок 1)' : '(Игрок 2)';
+                    enemyBoard = initBoard();
+                    renderBoard(playerBoard, 'playerBoardGame', placedShips, true);
+                    renderBoard(enemyBoard, 'enemyBoard', opponentShips, false);
+                    startTurnTimer();
                     updateTurnStatus();
                     break;
                 case 'shotResult':
                     if (msg.playerId === playerId) {
                         const cell = document.querySelector(`#enemyBoard .cell[data-row="${msg.row}"][data-col="${msg.col}"]`);
                         if (cell) cell.classList.add(msg.result === 'hit' || msg.result === 'sunk' ? 'hit' : 'miss');
+                        setTimeout(() => playSound(msg.result === 'hit' || msg.result === 'sunk' ? hitSound : missSound), 200);
                     } else {
                         const cell = document.querySelector(`#playerBoardGame .cell[data-row="${msg.row}"][data-col="${msg.col}"]`);
                         if (cell) {
                             cell.classList.add(msg.result === 'hit' || msg.result === 'sunk' ? 'hit' : 'miss');
-                            cell.classList.add('ship');
                         }
+                        setTimeout(() => playSound(msg.result === 'hit' || msg.result === 'sunk' ? hitSound : missSound), 200);
                     }
                     break;
                 case 'nextTurn':
                     myTurn = msg.playerId === playerId;
                     updateTurnStatus();
+                    if (myTurn) startTurnTimer();
+                    else stopTurnTimer();
                     break;
                 case 'gameOver':
+                    stopTurnTimer();
                     const won = msg.winner === playerId;
-                    document.getElementById('status').innerHTML = won ? '<span class="winner">ПОБЕДА! 🎉</span>' : '<span class="winner">ПОРАЖЕНИЕ 😢</span>';
-                    document.getElementById('restartBtn').style.display = 'block';
+                    setTimeout(() => showGameOverPopup(won), 500);
+                    break;
                     break;
                 case 'opponentLeft':
                     alert('Противчик вышел из игры');
@@ -448,6 +460,54 @@
             }
             document.getElementById('timer').style.display = 'none';
             document.getElementById('timer').classList.remove('warning');
+        }
+
+        function startTurnTimer() {
+            stopTurnTimer();
+            turnTimeLeft = 10;
+            const timerEl = document.getElementById('timer');
+            const timerValue = document.getElementById('timerValue');
+            timerEl.style.display = 'block';
+            timerValue.textContent = turnTimeLeft;
+            timerEl.classList.remove('warning');
+            
+            turnTimer = setInterval(() => {
+                turnTimeLeft--;
+                timerValue.textContent = turnTimeLeft;
+                
+                if (turnTimeLeft <= 3) {
+                    timerEl.classList.add('warning');
+                }
+                
+                if (turnTimeLeft <= 0) {
+                    stopTurnTimer();
+                    if (myTurn && gameMode === 'multi') {
+                        makeRandomShot();
+                    }
+                }
+            }, 1000);
+        }
+
+        function stopTurnTimer() {
+            if (turnTimer) {
+                clearInterval(turnTimer);
+                turnTimer = null;
+            }
+        }
+
+        function makeRandomShot() {
+            let row, col;
+            do {
+                row = Math.floor(Math.random() * BOARD_SIZE);
+                col = Math.floor(Math.random() * BOARD_SIZE);
+            } while (enemyBoard[row][col] === 1 || enemyBoard[row][col] === 2);
+            multiShoot(row, col);
+        }
+
+        function resetTurnTimer() {
+            if (myTurn) {
+                startTurnTimer();
+            }
         }
 
         function renderPlayerSetup() {
@@ -613,6 +673,8 @@
         function multiShoot(row, col) {
             if (!myTurn) return;
             if (enemyBoard[row][col] === 1 || enemyBoard[row][col] === 2) return;
+            playSound(shootSound);
+            stopTurnTimer();
             ws.send(JSON.stringify({ type: 'shoot', row, col }));
         }
 
