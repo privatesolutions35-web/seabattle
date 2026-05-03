@@ -1009,7 +1009,12 @@
         function initSetupBoard() {
             playerBoard = initBoard();
             placedShips = [];
-            document.querySelectorAll('.ship-btn').forEach(b => { b.classList.remove('placed'); b.style.display = 'inline-block'; });
+            document.querySelectorAll('.ship-btn').forEach(b => { 
+                b.classList.remove('placed'); 
+                b.style.display = 'inline-block'; 
+                b.disabled = false;
+                b.style.opacity = '1';
+            });
             currentShipSize = 4;
             selectShipSize(4);
             renderPlayerSetup();
@@ -1147,6 +1152,7 @@
         }
 
         function placeShip(row, col) {
+            if (placedShips.length >= 10) return;
             if (canPlaceShip(row, col, currentShipSize, isHorizontal)) {
                 for (let i = 0; i < currentShipSize; i++) {
                     const r = isHorizontal ? row : row + i;
@@ -1156,15 +1162,37 @@
                 placedShips.push({ row, col, size: currentShipSize, horizontal: isHorizontal });
                 renderPlayerSetup();
                 hidePlacedShip();
+                
+                if (placedShips.length < 10) {
+                    const sizes = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1];
+                    const usedSizes = placedShips.map(s => s.size);
+                    const nextSize = sizes.find(s => !usedSizes.filter(x => x === s).length || usedSizes.filter(x => x === s).length < sizes.filter(x => x === s).length);
+                    if (nextSize) {
+                        currentShipSize = nextSize;
+                        document.querySelectorAll('.ship-btn').forEach(b => b.classList.remove('selected'));
+                        document.querySelector(`.ship-btn[data-size="${nextSize}"]`)?.classList.add('selected');
+                    }
+                }
             }
         }
 
         function hidePlacedShip() {
-            const btns = document.querySelectorAll('.ship-btn:not(.placed)');
-            if (btns.length > 0) {
-                btns[0].classList.add('placed');
-                btns[0].style.display = 'none';
-                if (btns[1]) selectShipSize(parseInt(btns[1].dataset.size));
+            const placedCount = placedShips.length;
+            if (placedCount >= 10) return;
+            
+            const btns = document.querySelectorAll('.ship-btn');
+            btns.forEach((btn, idx) => {
+                if (idx < placedCount) {
+                    btn.disabled = true;
+                    btn.classList.add('placed');
+                    btn.style.opacity = '0.3';
+                }
+            });
+            
+            const remainingSizes = [4, 3, 3, 2, 2, 2, 1, 1, 1, 1];
+            const remaining = remainingSizes.slice(placedCount);
+            if (remaining.length > 0) {
+                currentShipSize = remaining[0];
             }
         }
 
@@ -1178,7 +1206,7 @@
                     for (let dc = -1; dc <= 1; dc++) {
                         const nr = r + dr, nc = c + dc;
                         if (nr >= 0 && nr < BOARD_SIZE && nc >= 0 && nc < BOARD_SIZE) {
-                            if (playerBoard[nr][nc] !== 0 && playerBoard[nr][nc] !== 3) return false;
+                            if (playerBoard[nr][nc] !== 0) return false;
                         }
                     }
                 }
@@ -1386,12 +1414,12 @@
             const message = document.getElementById('gameOverMessage');
             
             if (won) {
-                title.textContent = 'ПОБЕДА! 🎉';
-                message.textContent = 'Вы уничтожили все корабли противника!';
+                title.textContent = 'VICTORY! 🎉';
+                message.textContent = 'You destroyed all enemy ships!';
                 playSound(winSound);
             } else {
-                title.textContent = 'ПОРАЖЕНИЕ 😢';
-                message.textContent = 'Ваш флот был уничтожен!';
+                title.textContent = 'DEFEAT 😢';
+                message.textContent = 'Your fleet was destroyed!';
                 playSound(loseSound);
             }
             
