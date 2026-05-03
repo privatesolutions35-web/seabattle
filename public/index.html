@@ -827,7 +827,7 @@
         function handleWSMessage(msg) {
             switch (msg.type) {
                 case 'onlineCount':
-                    document.getElementById('onlineCount').textContent = `Игроков онлайн: ${msg.count}`;
+                    document.getElementById('onlineCount').textContent = `Online: ${msg.count}`;
                     break;
                 case 'roomsList':
                     renderRoomList(msg.rooms);
@@ -1111,7 +1111,7 @@
         }
 
         function surrender() {
-            if (confirm('Вы уверены, что хотите сдаться?')) {
+            if (confirm('Are you sure you want to surrender?')) {
                 ws.send(JSON.stringify({ type: 'surrender' }));
                 showGameOverPopup(false);
                 bgMusic.pause();
